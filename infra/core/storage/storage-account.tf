@@ -219,9 +219,17 @@ resource "azurerm_private_endpoint" "blobPrivateEndpoint" {
     subresource_names              = ["blob"]
   }
 
-  private_dns_zone_group {
-    name                 = "${var.name}PrivateDnsZoneGroup"
-    private_dns_zone_ids = var.private_dns_zone_ids
+  # private_dns_zone_group {
+  #   name                 = "${var.name}PrivateDnsZoneGroup"
+  #   private_dns_zone_ids = var.private_dns_zone_ids
+  # }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.create_private_dns ? [1] : []
+    content {
+      name                 = "${var.name}PrivateDnsZoneGroup"
+      private_dns_zone_ids = var.private_dns_zone_ids
+    }
   }
 }
 
@@ -241,9 +249,17 @@ resource "azurerm_private_endpoint" "filePrivateEndpoint" {
     subresource_names              = ["file"]
   }
 
-  private_dns_zone_group {
-    name                 = "${var.name}PrivateDnsZoneGroup"
-    private_dns_zone_ids = var.private_dns_zone_ids
+  # private_dns_zone_group {
+  #   name                 = "${var.name}PrivateDnsZoneGroup"
+  #   private_dns_zone_ids = var.private_dns_zone_ids
+  # }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.create_private_dns ? [1] : []
+    content {
+      name                 = "${var.name}PrivateDnsZoneGroup"
+      private_dns_zone_ids = var.private_dns_zone_ids
+    }
   }
 }
 
@@ -264,9 +280,17 @@ resource "azurerm_private_endpoint" "tablePrivateEndpoint" {
     subresource_names              = ["table"]
   }
 
-  private_dns_zone_group {
-    name                 = "${var.name}PrivateDnsZoneGroup"
-    private_dns_zone_ids = var.private_dns_zone_ids
+  # private_dns_zone_group {
+  #   name                 = "${var.name}PrivateDnsZoneGroup"
+  #   private_dns_zone_ids = var.private_dns_zone_ids
+  # }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.create_private_dns ? [1] : []
+    content {
+      name                 = "${var.name}PrivateDnsZoneGroup"
+      private_dns_zone_ids = var.private_dns_zone_ids
+    }
   }
 }
 

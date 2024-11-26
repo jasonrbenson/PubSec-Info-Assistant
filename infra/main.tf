@@ -611,6 +611,7 @@ module "searchServices" {
   resourceGroupName             = azurerm_resource_group.rg.name
   azure_search_domain           = var.azure_search_domain
   is_secure_mode                = var.is_secure_mode
+  create_private_dns = var.create_private_dns
   subnet_name                   = var.is_secure_mode ? module.network[0].snetSearch_name : null
   subnet_id                   = var.is_secure_mode ? module.network[0].snetSearch_id : null
   vnet_name                     = var.is_secure_mode ? module.network[0].vnet_name : null
@@ -628,7 +629,8 @@ module "cosmosdb" {
   logContainerName              = "statuscontainer"
   resourceGroupName             = azurerm_resource_group.rg.name
   key_vault_name                = module.kvModule.keyVaultName
-  is_secure_mode                = var.is_secure_mode  
+  is_secure_mode                = var.is_secure_mode 
+  create_private_dns = var.create_private_dns 
   subnet_name                   = var.is_secure_mode ? module.network[0].snetCosmosDb_name : null
   subnet_id                   = var.is_secure_mode ? module.network[0].snetCosmosDb_id : null
   vnet_name                     = var.is_secure_mode ? module.network[0].vnet_name : null

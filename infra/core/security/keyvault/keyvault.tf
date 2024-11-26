@@ -1,7 +1,7 @@
 data "azurerm_client_config" "current" {}
 
 data "azurerm_private_dns_zone" "kv_dns_zone" {
-  count                = var.is_secure_mode ? 1 : 0
+  count                = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "privatelink.${var.azure_keyvault_domain}"
   resource_group_name = var.resourceGroupName
 }
