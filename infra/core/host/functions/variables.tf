@@ -39,11 +39,20 @@ variable "storageAccountId" {
   default = ""
 }
 
+variable "storageAccountAccessKey" {
+  type = string
+  sensitive = true
+}
+
 variable "keyVaultUri" { 
   type = string
 }
 
 variable "keyVaultName" {
+  type = string
+}
+
+variable "keyVaultId" {
   type = string
 }
 
@@ -261,12 +270,21 @@ variable "subnet_name" {
   type = string
 }
 
+variable "subnet_id" {
+  type = string
+}
+
 variable "subnetIntegration_id" {
   type = string
 }
 
 variable "private_dns_zone_ids" {
   type = set(string)
+}
+
+variable "create_private_dns" {
+  type    = bool
+  default = true
 }
 
 variable "is_secure_mode" {

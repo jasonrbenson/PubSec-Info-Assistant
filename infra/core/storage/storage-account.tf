@@ -196,12 +196,12 @@ module "storage_connection_string" {
   contentType                   = "application/vnd.ms-StorageConnectionString"
 }
 
-data "azurerm_subnet" "subnet" {
-  count                = var.is_secure_mode ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.vnet_name
-  resource_group_name  = var.resourceGroupName
-}
+# data "azurerm_subnet" "subnet" {
+#   count                = var.is_secure_mode ? 1 : 0
+#   name                 = var.subnet_name
+#   virtual_network_name = var.vnet_name
+#   resource_group_name  = var.resourceGroupName
+# }
 
 // Create a private endpoint for blob storage account
 resource "azurerm_private_endpoint" "blobPrivateEndpoint" {
@@ -209,7 +209,7 @@ resource "azurerm_private_endpoint" "blobPrivateEndpoint" {
   name                          = "${var.name}-private-endpoint-blob"
   location                      = var.location
   resource_group_name           = var.resourceGroupName
-  subnet_id                     = data.azurerm_subnet.subnet[0].id
+  subnet_id                     = var.subnet_id
   custom_network_interface_name = "infoasstblobstoragenic"
 
   private_service_connection {
@@ -231,7 +231,7 @@ resource "azurerm_private_endpoint" "filePrivateEndpoint" {
   name                          = "${var.name}-private-endpoint-file"
   location                      = var.location
   resource_group_name           = var.resourceGroupName
-  subnet_id                     = data.azurerm_subnet.subnet[0].id
+  subnet_id                     = var.subnet_id
   custom_network_interface_name = "infoasstfilestoragenic"
 
   private_service_connection {
@@ -254,7 +254,7 @@ resource "azurerm_private_endpoint" "tablePrivateEndpoint" {
   name                          = "${var.name}-private-endpoint-table"
   location                      = var.location
   resource_group_name           = var.resourceGroupName
-  subnet_id                     = data.azurerm_subnet.subnet[0].id
+  subnet_id                     = var.subnet_id
   custom_network_interface_name = "infoassttablestoragenic"
 
   private_service_connection {
@@ -276,7 +276,7 @@ resource "azurerm_private_endpoint" "queuePrivateEndpoint" {
   name                          = "${var.name}-private-endpoint-queue"
   location                      = var.location
   resource_group_name           = var.resourceGroupName
-  subnet_id                     = data.azurerm_subnet.subnet[0].id
+  subnet_id                     = var.subnet_id
   custom_network_interface_name = "infoasstqueuestoragenic"
 
   private_service_connection {
@@ -286,9 +286,18 @@ resource "azurerm_private_endpoint" "queuePrivateEndpoint" {
     subresource_names              = ["queue"]
   }
 
-  private_dns_zone_group {
-    name                 = "${var.name}PrivateDnsZoneGroup"
-    private_dns_zone_ids = var.private_dns_zone_ids
+  # private_dns_zone_group {
+  #   name                 = "${var.name}PrivateDnsZoneGroup"
+  #   private_dns_zone_ids = var.private_dns_zone_ids
+  # }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.create_private_dns ? [1] : []
+    content {
+      name                 = "${var.name}PrivateDnsZoneGroup"
+      private_dns_zone_ids = var.private_dns_zone_ids
+    }
+    
   }
 }
 

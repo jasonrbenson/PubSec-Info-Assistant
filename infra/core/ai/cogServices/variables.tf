@@ -39,6 +39,11 @@ variable "private_dns_zone_ids" {
   type = set(string)
 }
 
+variable "create_private_dns" {
+  type    = bool
+  default = true
+}
+
 variable "subnetResourceId" {
   type = string
 }
@@ -54,6 +59,10 @@ variable "kv_secret_expiration" {
 
 variable "subnet_name" {
   type    = string
+}
+
+variable "subnet_id" {
+  type = string
 }
 
 variable "vnet_name" {

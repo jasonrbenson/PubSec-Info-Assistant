@@ -8,19 +8,19 @@ resource "azurerm_container_registry" "acr" {
   public_network_access_enabled = var.is_secure_mode ? false : true
 }
 
-data "azurerm_subnet" "subnet" {
-  count                = var.is_secure_mode ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.vnet_name
-  resource_group_name  = var.resourceGroupName
-}
+# data "azurerm_subnet" "subnet" {
+#   count                = var.is_secure_mode ? 1 : 0
+#   name                 = var.subnet_name
+#   virtual_network_name = var.vnet_name
+#   resource_group_name  = var.resourceGroupName
+# }
 
 resource "azurerm_private_endpoint" "ContainerRegistryPrivateEndpoint" {
   count                         = var.is_secure_mode ? 1 : 0
   name                          = "${var.name}-private-endpoint"
   location                      = var.location
   resource_group_name           = var.resourceGroupName
-  subnet_id                     = data.azurerm_subnet.subnet[0].id
+  subnet_id                     = var.subnet_id
   tags                          = var.tags
   custom_network_interface_name = "infoasstacrnic"
 
@@ -31,8 +31,15 @@ resource "azurerm_private_endpoint" "ContainerRegistryPrivateEndpoint" {
     subresource_names               = ["registry"]
   }
 
-  private_dns_zone_group {
-    name                 = "${var.name}PrivateDnsZoneGroup"
-    private_dns_zone_ids = var.private_dns_zone_ids
+  # private_dns_zone_group {
+  #   name                 = "${var.name}PrivateDnsZoneGroup"
+  #   private_dns_zone_ids = var.private_dns_zone_ids
+  # }
+  dynamic "private_dns_zone_group" {
+    for_each = var.create_private_dns ? [1] : []
+    content {
+      name                 = "${var.name}PrivateDnsZoneGroup"
+      private_dns_zone_ids = var.private_dns_zone_ids
+    }
   }
 }

@@ -43,7 +43,8 @@ module "entraObjects" {
 module "network" {
   source                          = "./core/network/network"
   count                           = var.is_secure_mode ? 1 : 0
-  vnet_name                       = "infoasst-vnet-${random_string.random.result}"
+  useExistingVnet = var.use_existing_vnet
+  vnet_name                       = coalesce(var.existing_vnet_name, "infoasst-vnet-${random_string.random.result}")
   nsg_name                        = "infoasst-nsg-${random_string.random.result}"
   ddos_name                       = "infoasst-ddos-${random_string.random.result}"
   dns_resolver_name               = "infoasst-dns-${random_string.random.result}"
@@ -51,7 +52,7 @@ module "network" {
   ddos_plan_id                    = var.ddos_plan_id
   location                        = var.location
   tags                            = local.tags
-  resourceGroupName               = azurerm_resource_group.rg.name
+  resourceGroupName               = coalesce(var.vnet_resource_group_name, azurerm_resource_group.rg.name)
   vnetIpAddressCIDR               = var.virtual_network_CIDR
   snetAzureMonitorCIDR            = var.azure_monitor_CIDR
   snetStorageAccountCIDR          = var.storage_account_CIDR
@@ -67,14 +68,28 @@ module "network" {
   snetAzureOpenAICIDR             = var.azure_openAI_CIDR
   snetACRCIDR                     = var.acr_CIDR
   snetDnsCIDR                     = var.dns_CIDR
+  snetAzureMonitorSubnetName            = var.azure_monitor_subnet_name
+  snetStorageAccountSubnetName          = var.storage_account_subnet_name
+  snetCosmosDbSubnetName                = var.cosmos_db_subnet_name
+  snetAzureAiSubnetName                 = var.azure_ai_subnet_name
+  snetKeyVaultSubnetName                = var.key_vault_subnet_name
+  snetAppSubnetName                    = var.webapp_subnet_name
+  snetFunctionSubnetName               = var.functions_subnet_name
+  snetEnrichmentSubnetName              = var.enrichment_app_subnet_name
+  snetIntegrationSubnetName             = var.integration_subnet_name
+  snetSearchServiceSubnetName           = var.search_service_subnet_name
+  snetAzureOpenAISubnetName             = var.azure_openAI_subnet_name
+  snetACRSubnetName                     = var.acr_subnet_name
+  snetDnsSubnetName                     = var.dns_subnet_name
   arm_template_schema_mgmt_api    = var.arm_template_schema_mgmt_api
   azure_environment               = var.azure_environment
+  usePrivateDNSResolver = var.usePrivateDNSResolver
 }
 
 // Create the Private DNS Zones for all the services
 module "privateDnsZoneAzureOpenAi" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.${var.azure_openai_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-azure-openai-vnetlink-${random_string.random.result}"
@@ -85,7 +100,7 @@ module "privateDnsZoneAzureOpenAi" {
 
 module "privateDnsZoneAzureAi" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.${var.azure_ai_private_link_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-azure-ai-vnetlink-${random_string.random.result}"
@@ -96,7 +111,7 @@ module "privateDnsZoneAzureAi" {
 
 module "privateDnsZoneApp" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.${var.azure_websites_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-app-vnetlink-${random_string.random.result}"
@@ -107,7 +122,7 @@ module "privateDnsZoneApp" {
 
 module "privateDnsZoneKeyVault" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.${var.azure_keyvault_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-kv-vnetlink-${random_string.random.result}"
@@ -118,7 +133,7 @@ module "privateDnsZoneKeyVault" {
 
 module "privateDnsZoneStorageAccountBlob" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.blob.${var.azure_storage_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-storage-blob-vnetlink-${random_string.random.result}"
@@ -130,7 +145,7 @@ module "privateDnsZoneStorageAccountBlob" {
 
 module "privateDnsZoneStorageAccountFile" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.file.${var.azure_storage_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-storage-file-vnetlink-${random_string.random.result}"
@@ -141,7 +156,7 @@ module "privateDnsZoneStorageAccountFile" {
 
 module "privateDnsZoneStorageAccountTable" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.table.${var.azure_storage_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-storage-table-vnetlink-${random_string.random.result}"
@@ -152,7 +167,7 @@ module "privateDnsZoneStorageAccountTable" {
 
 module "privateDnsZoneStorageAccountQueue" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.queue.${var.azure_storage_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-storage-queue-vnetlink-${random_string.random.result}"
@@ -163,7 +178,7 @@ module "privateDnsZoneStorageAccountQueue" {
 
 module "privateDnsZoneSearchService" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.${var.azure_search_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-search-vnetlink-${random_string.random.result}"
@@ -174,7 +189,7 @@ module "privateDnsZoneSearchService" {
 
 module "privateDnsZoneCosmosDb" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.${var.cosmosdb_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-cosmos-vnetlink-${random_string.random.result}"
@@ -185,7 +200,7 @@ module "privateDnsZoneCosmosDb" {
 
 module "privateDnsZoneACR" {
   source             = "./core/network/privateDNS"
-  count              = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name               = "privatelink.${var.azure_acr_domain}"
   resourceGroupName  = azurerm_resource_group.rg.name
   vnetLinkName       = "infoasst-acr-vnetlink-${random_string.random.result}"
@@ -216,6 +231,7 @@ module "logging" {
   vnet_name                             = var.is_secure_mode ? module.network[0].vnet_name : null
   ampls_subnet_CIDR                     = var.azure_monitor_CIDR
   vnet_id                               = var.is_secure_mode ? module.network[0].vnet_id : null
+  subnet_id = var.is_secure_mode ? module.network[0].snetAmpls_id : null
   nsg_id                                = var.is_secure_mode ? module.network[0].nsg_id : null
   nsg_name                              = var.is_secure_mode ? module.network[0].nsg_name : null
 }
@@ -237,8 +253,9 @@ module "storage" {
   queueNames                      = ["pdf-submit-queue","pdf-polling-queue","non-pdf-submit-queue","media-submit-queue","text-enrichment-queue","image-enrichment-queue","embeddings-queue"]
   is_secure_mode                  = var.is_secure_mode
   subnet_name                     = var.is_secure_mode ? module.network[0].snetStorage_name : null
+  subnet_id                    = var.is_secure_mode ? module.network[0].snetStorage_id : null
   vnet_name                       = var.is_secure_mode ? module.network[0].vnet_name : null
-  private_dns_zone_ids            = var.is_secure_mode ? [module.privateDnsZoneStorageAccountBlob[0].privateDnsZoneResourceId,
+  private_dns_zone_ids            = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneStorageAccountBlob[0].privateDnsZoneResourceId,
                                        module.privateDnsZoneStorageAccountFile[0].privateDnsZoneResourceId,
                                         module.privateDnsZoneStorageAccountTable[0].privateDnsZoneResourceId,
                                         module.privateDnsZoneStorageAccountQueue[0].privateDnsZoneResourceId] : null
@@ -258,7 +275,7 @@ module "kvModule" {
   subnet_name                   = var.is_secure_mode ? module.network[0].snetKeyVault_name : null
   vnet_name                     = var.is_secure_mode ? module.network[0].vnet_name : null
   subnet_id                     = var.is_secure_mode ? module.network[0].snetKeyVault_id : null
-  private_dns_zone_ids          = var.is_secure_mode ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids          = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
   depends_on                    = [ module.entraObjects, module.privateDnsZoneKeyVault[0] ]
   azure_keyvault_domain         = var.azure_keyvault_domain
   arm_template_schema_mgmt_api  = var.arm_template_schema_mgmt_api
@@ -289,6 +306,7 @@ module "enrichmentApp" {
   appCommandLine                            = ""
   keyVaultUri                               = module.kvModule.keyVaultUri
   keyVaultName                              = module.kvModule.keyVaultName
+  keyVaultId = module.kvModule.keyVaultId
   container_registry                        = module.acr.login_server
   container_registry_admin_username         = module.acr.admin_username
   container_registry_admin_password         = module.acr.admin_password
@@ -296,8 +314,9 @@ module "enrichmentApp" {
   is_secure_mode                            = var.is_secure_mode
   subnetIntegration_id                      = var.is_secure_mode ? module.network[0].snetIntegration_id : null
   subnet_name                               = var.is_secure_mode ? module.network[0].snetEnrichment_name : null
+  subnet_id                              = var.is_secure_mode ? module.network[0].snetEnrichment_id : null
   vnet_name                                 = var.is_secure_mode ? module.network[0].vnet_name : null
-  private_dns_zone_ids                      = var.is_secure_mode ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids                      = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
   azure_environment                         = var.azure_environment
 
   appSettings = {
@@ -341,7 +360,7 @@ module "webapp" {
   resourceGroupName                   = azurerm_resource_group.rg.name
   location                            = var.location
   tags                                = merge(local.tags, { "azd-service-name" = "backend" })
-  runtimeVersion                      = "3.12" 
+  runtimeVersion                      = "3.10" 
   scmDoBuildDuringDeployment          = false
   managedIdentity                     = true
   alwaysOn                            = true
@@ -353,14 +372,16 @@ module "webapp" {
   applicationInsightsConnectionString = module.logging.applicationInsightsConnectionString
   keyVaultUri                         = module.kvModule.keyVaultUri
   keyVaultName                        = module.kvModule.keyVaultName
+  keyVaultId = module.kvModule.keyVaultId
   tenantId                            = data.azurerm_client_config.current.tenant_id
   is_secure_mode                      = var.is_secure_mode
   subnet_name                         = var.is_secure_mode ? module.network[0].snetApp_name : null
   vnet_name                           = var.is_secure_mode ? module.network[0].vnet_name : null
+  subnet_id = var.is_secure_mode ? module.network[0].snetApp_id : null
   snetIntegration_id                  = var.is_secure_mode ? module.network[0].snetIntegration_id : null
-  private_dns_zone_ids                = var.is_secure_mode ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
-  private_dns_zone_name               = var.is_secure_mode ? module.privateDnsZoneApp[0].privateDnsZoneName : null
-
+  private_dns_zone_ids                = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
+  private_dns_zone_name               = var.is_secure_mode && var.create_private_dns ? module.privateDnsZoneApp[0].privateDnsZoneName : null
+  public_network_access_enabled = var.webapp_public_network_access_enabled
   container_registry                  = module.acr.login_server
   container_registry_admin_username   = module.acr.admin_username
   container_registry_admin_password   = module.acr.admin_password
@@ -426,6 +447,7 @@ module "functions" {
   tags                                  = local.tags
   keyVaultUri                           = module.kvModule.keyVaultUri
   keyVaultName                          = module.kvModule.keyVaultName 
+  keyVaultId = module.kvModule.keyVaultId
   plan_name                             = var.appServicePlanName != "" ? var.appServicePlanName : "infoasst-func-asp-${random_string.random.result}"
   sku                                   = {
     size                                = var.functionsAppSkuSize
@@ -438,6 +460,7 @@ module "functions" {
   azure_portal_domain                   = var.azure_portal_domain
   appInsightsConnectionString           = module.logging.applicationInsightsConnectionString
   appInsightsInstrumentationKey         = module.logging.applicationInsightsInstrumentationKey
+  storageAccountAccessKey = module.storage.storage_account_access_key
   blobStorageAccountName                = module.storage.name
   blobStorageAccountEndpoint            = module.storage.primary_blob_endpoint
   blobStorageAccountOutputContainerName = var.contentContainerName
@@ -480,8 +503,9 @@ module "functions" {
   is_secure_mode                        = var.is_secure_mode
   vnet_name                             = var.is_secure_mode ? module.network[0].vnet_name : null
   subnet_name                           = var.is_secure_mode ? module.network[0].snetFunction_name : null
+  subnet_id = var.is_secure_mode ? module.network[0].snetFunction_id : null
   subnetIntegration_id                  = var.is_secure_mode ? module.network[0].snetIntegration_id : null
-  private_dns_zone_ids                  = var.is_secure_mode ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids                  = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneApp[0].privateDnsZoneResourceId] : null
   container_registry                    = module.acr.login_server
   container_registry_admin_username     = module.acr.admin_username
   container_registry_admin_password     = module.acr.admin_password
@@ -493,7 +517,7 @@ module "functions" {
 module "openaiServices" {
   source                          = "./core/ai/openaiservices"
   name                            = var.openAIServiceName != "" ? var.openAIServiceName : "infoasst-aoai-${random_string.random.result}"
-  location                        = var.location
+  location                        = var.openaiLocation
   tags                            = local.tags
   resourceGroupName               = azurerm_resource_group.rg.name
   useExistingAOAIService          = var.useExistingAOAIService
@@ -501,7 +525,7 @@ module "openaiServices" {
   subnet_name                     = var.is_secure_mode ? module.network[0].snetAzureOpenAI_name : null
   vnet_name                       = var.is_secure_mode ? module.network[0].vnet_name : null
   subnet_id                       = var.is_secure_mode ? module.network[0].snetAzureOpenAI_id : null
-  private_dns_zone_ids            = var.is_secure_mode ? [module.privateDnsZoneAzureOpenAi[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids            = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneAzureOpenAi[0].privateDnsZoneResourceId] : null
   arm_template_schema_mgmt_api    = var.arm_template_schema_mgmt_api
   key_vault_name                  = module.kvModule.keyVaultName
   logAnalyticsWorkspaceResourceId = module.logging.logAnalyticsId
@@ -546,8 +570,9 @@ module "aiDocIntelligence" {
   key_vault_name                = module.kvModule.keyVaultName
   is_secure_mode                = var.is_secure_mode
   subnet_name                   = var.is_secure_mode ? module.network[0].snetAzureAi_name : null
+  subnet_id                   = var.is_secure_mode ? module.network[0].snetAzureAi_id : null
   vnet_name                     = var.is_secure_mode ? module.network[0].vnet_name : null
-  private_dns_zone_ids          = var.is_secure_mode ? [module.privateDnsZoneAzureAi[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids          = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneAzureAi[0].privateDnsZoneResourceId] : null
   arm_template_schema_mgmt_api  = var.arm_template_schema_mgmt_api
 }
 
@@ -559,26 +584,28 @@ module "cognitiveServices" {
   resourceGroupName             = azurerm_resource_group.rg.name
   is_secure_mode                = var.is_secure_mode
   subnetResourceId              = var.is_secure_mode ? module.network[0].snetAzureAi_id : null
-  private_dns_zone_ids          = var.is_secure_mode ? [module.privateDnsZoneAzureAi[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids          = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneAzureAi[0].privateDnsZoneResourceId] : null
   arm_template_schema_mgmt_api  = var.arm_template_schema_mgmt_api
   key_vault_name                = module.kvModule.keyVaultName
   kv_secret_expiration          = var.kv_secret_expiration
   vnet_name                     = var.is_secure_mode ? module.network[0].vnet_name : null
   subnet_name                   = var.is_secure_mode ? module.network[0].snetAzureAi_name : null
+  subnet_id                = var.is_secure_mode ? module.network[0].snetAzureAi_id : null
 }
 
 module "searchServices" {
   source                        = "./core/search"
   name                          = var.searchServicesName != "" ? var.searchServicesName : "infoasst-search-${random_string.random.result}"
-  location                      = var.location
+  location                      = var.aiSearchLocation
   tags                          = local.tags
   semanticSearch                = var.use_semantic_reranker ? "free" : null
   resourceGroupName             = azurerm_resource_group.rg.name
   azure_search_domain           = var.azure_search_domain
   is_secure_mode                = var.is_secure_mode
   subnet_name                   = var.is_secure_mode ? module.network[0].snetSearch_name : null
+  subnet_id                   = var.is_secure_mode ? module.network[0].snetSearch_id : null
   vnet_name                     = var.is_secure_mode ? module.network[0].vnet_name : null
-  private_dns_zone_ids          = var.is_secure_mode ? [module.privateDnsZoneSearchService[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids          = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneSearchService[0].privateDnsZoneResourceId] : null
   arm_template_schema_mgmt_api  = var.arm_template_schema_mgmt_api
   key_vault_name                = module.kvModule.keyVaultName
 }
@@ -586,7 +613,7 @@ module "searchServices" {
 module "cosmosdb" {
   source = "./core/db"
   name                          = "infoasst-cosmos-${random_string.random.result}"
-  location                      = var.location
+  location                      = var.cosmosdbLocation
   tags                          = local.tags
   logDatabaseName               = "statusdb"
   logContainerName              = "statuscontainer"
@@ -594,8 +621,9 @@ module "cosmosdb" {
   key_vault_name                = module.kvModule.keyVaultName
   is_secure_mode                = var.is_secure_mode  
   subnet_name                   = var.is_secure_mode ? module.network[0].snetCosmosDb_name : null
+  subnet_id                   = var.is_secure_mode ? module.network[0].snetCosmosDb_id : null
   vnet_name                     = var.is_secure_mode ? module.network[0].vnet_name : null
-  private_dns_zone_ids          = var.is_secure_mode ? [module.privateDnsZoneCosmosDb[0].privateDnsZoneResourceId] : null
+  private_dns_zone_ids          = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneCosmosDb[0].privateDnsZoneResourceId] : null
   arm_template_schema_mgmt_api  = var.arm_template_schema_mgmt_api
 }
 
@@ -606,9 +634,10 @@ module "acr"{
   resourceGroupName     = azurerm_resource_group.rg.name
   is_secure_mode        = var.is_secure_mode
   subnet_name           = var.is_secure_mode ? module.network[0].snetACR_name : null
+  subnet_id = var.is_secure_mode ? module.network[0].snetACR_id : null
   vnet_name             = var.is_secure_mode ? module.network[0].vnet_name : null
-  private_dns_zone_name = var.is_secure_mode ? module.privateDnsZoneACR[0].privateDnsZoneName : null
-  private_dns_zone_ids  = var.is_secure_mode ? [module.privateDnsZoneACR[0].privateDnsZoneResourceId] : null
+  private_dns_zone_name = var.is_secure_mode && var.create_private_dns ? module.privateDnsZoneACR[0].privateDnsZoneName : null
+  private_dns_zone_ids  = var.is_secure_mode && var.create_private_dns ? [module.privateDnsZoneACR[0].privateDnsZoneResourceId] : null
 }
 
 // SharePoint Connector is not supported in secure mode

@@ -83,6 +83,11 @@ variable "keyVaultName" {
   default = ""
 }
 
+variable "keyVaultId" {
+  type = string
+  default = ""
+}
+
 variable "managedIdentity" {
   type = bool
   default = false
@@ -134,8 +139,17 @@ variable "subnet_name" {
   type = string
 }
 
+variable "subnet_id" {
+  type = string
+}
+
 variable "private_dns_zone_ids" {
   type = set(string)
+}
+
+variable "create_private_dns" {
+  type    = bool
+  default = true
 }
 
 variable "azure_environment" {

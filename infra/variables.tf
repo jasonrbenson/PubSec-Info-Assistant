@@ -8,6 +8,21 @@ variable "location" {
   type        = string
 }
 
+variable "openaiLocation" {
+  description = "Location for the OpenAI service"
+  type        = string
+}
+
+variable "cosmosdbLocation" {
+  description = "Location for the CosmosDB service"
+  type        = string
+}
+
+variable "aiSearchLocation" {
+  description = "Location for the Azure Search service"
+  type        = string
+}
+
 variable "resourceGroupName" {
   type    = string
   default = ""
@@ -360,6 +375,71 @@ variable "dns_CIDR" {
   default = "10.0.8.176/28"
 }
 
+variable "azure_monitor_subnet_name" {
+  type    = string
+  default = "ampls"
+}
+
+variable "storage_account_subnet_name" {
+  type    = string
+  default = "storageAccount"
+}
+
+variable "cosmos_db_subnet_name" {
+  type    = string
+  default = "cosmosDb"
+}
+
+variable "azure_ai_subnet_name" {
+  type    = string
+  default = "azureAi"
+}
+
+variable "webapp_subnet_name" {
+  type    = string
+  default = "app"
+}
+
+variable "key_vault_subnet_name" {
+  type    = string
+  default = "keyVault"
+}
+
+variable "functions_subnet_name" {
+  type    = string
+  default = "function"
+}
+
+variable "enrichment_app_subnet_name" {
+  type    = string
+  default = "enrichment"
+}
+
+variable "search_service_subnet_name" {
+  type    = string
+  default = "aiSearch"
+}
+
+variable "azure_openAI_subnet_name" {
+  type    = string
+  default = "azureOpenAI"
+}
+
+variable "integration_subnet_name" {
+  type    = string
+  default = "integration"
+}
+
+variable "acr_subnet_name" {
+  type    = string
+  default = "acr"
+}
+
+variable "dns_subnet_name" {
+  type    = string
+  default = "dns"
+}
+
 variable "ddos_plan_id" {
   type    = string
   default = ""
@@ -368,6 +448,36 @@ variable "ddos_plan_id" {
 variable "openai_public_network_access_enabled" {
   type    = string
   default = "Enabled"
+}
+
+variable "webapp_public_network_access_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "create_private_dns" {
+  type    = bool
+  default = true
+}
+
+variable "usePrivateDNSResolver" {
+  type    = bool
+  default = true
+}
+
+variable "vnet_resource_group_name" {
+  type = string
+  default = ""
+}
+
+variable "use_existing_vnet" {
+  type = bool
+  default = false
+}
+
+variable "existing_vnet_name" {
+  type = string
+  default = ""
 }
 
 variable "kv_secret_expiration" {

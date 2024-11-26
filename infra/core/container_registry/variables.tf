@@ -21,6 +21,10 @@ variable "subnet_name" {
   type = string
 }
 
+variable "subnet_id" {
+  type = string
+}
+
 variable "is_secure_mode" {
   description = "Specifies whether to deploy in secure mode"
   type        = bool
@@ -33,6 +37,11 @@ variable "private_dns_zone_ids" {
 
 variable "private_dns_zone_name" {
   type = string
+}
+
+variable "create_private_dns" {
+  type    = bool
+  default = true
 }
 
 variable "tags" {

@@ -57,12 +57,12 @@ resource "azurerm_monitor_private_link_scoped_service" "ampl_ss_app_insights" {
   linked_resource_id  = azurerm_application_insights.applicationInsights.id
 }
 
-data "azurerm_subnet" "subnet" {
-  count                = var.is_secure_mode ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.vnet_name
-  resource_group_name  = var.resourceGroupName
-}
+# data "azurerm_subnet" "subnet" {
+#   count                = var.is_secure_mode ? 1 : 0
+#   name                 = var.subnet_name
+#   virtual_network_name = var.vnet_name
+#   resource_group_name  = var.resourceGroupName
+# }
 
 // add private endpoint for azure monitor - metrics, app insights, log analytics
 resource "azurerm_private_endpoint" "ampls" {
@@ -70,7 +70,7 @@ resource "azurerm_private_endpoint" "ampls" {
   name                              = "${var.privateLinkScopeName}-private-endpoint"
   location                          = var.location
   resource_group_name               = var.resourceGroupName
-  subnet_id                         = data.azurerm_subnet.subnet[0].id
+  subnet_id                         = var.subnet_id
   custom_network_interface_name     = "infoasstamplsnic"
 
   private_service_connection {
@@ -80,27 +80,42 @@ resource "azurerm_private_endpoint" "ampls" {
     subresource_names               = [var.groupId]
   }
 
-  private_dns_zone_group {
-    name                            = "ampls"
-    private_dns_zone_ids = [
-        azurerm_private_dns_zone.monitor[0].id,
-        azurerm_private_dns_zone.oms[0].id,
-        azurerm_private_dns_zone.ods[0].id,
-        azurerm_private_dns_zone.agentsvc[0].id,
-        var.privateDnsZoneResourceIdBlob
-    ]
+  # private_dns_zone_group {
+  #   name                            = "ampls"
+  #   private_dns_zone_ids = [
+  #       azurerm_private_dns_zone.monitor[0].id,
+  #       azurerm_private_dns_zone.oms[0].id,
+  #       azurerm_private_dns_zone.ods[0].id,
+  #       azurerm_private_dns_zone.agentsvc[0].id,
+  #       var.privateDnsZoneResourceIdBlob
+  #   ]
+  # }
+  dynamic "private_dns_zone_group" {
+    for_each = var.create_private_dns ? [1] : []
+    content {
+      name                            = "ampls"
+      private_dns_zone_ids = [
+          azurerm_private_dns_zone.monitor[0].id,
+          azurerm_private_dns_zone.oms[0].id,
+          azurerm_private_dns_zone.ods[0].id,
+          azurerm_private_dns_zone.agentsvc[0].id,
+          var.privateDnsZoneResourceIdBlob
+      ]
+    }
+    
   }
+
 }
 
 resource "azurerm_private_dns_zone" "monitor" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = var.privateDnsZoneNameMonitor
   resource_group_name = var.resourceGroupName
   tags                = var.tags
 }
 
 resource "azurerm_private_dns_a_record" "monitor_api" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "api"
   zone_name           = azurerm_private_dns_zone.monitor[0].name
   resource_group_name = var.resourceGroupName
@@ -109,7 +124,7 @@ resource "azurerm_private_dns_a_record" "monitor_api" {
 }
 
 resource "azurerm_private_dns_a_record" "monitor_global" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "global.in.ai"
   zone_name           = azurerm_private_dns_zone.monitor[0].name
   resource_group_name = var.resourceGroupName
@@ -118,7 +133,7 @@ resource "azurerm_private_dns_a_record" "monitor_global" {
 }
 
 resource "azurerm_private_dns_a_record" "monitor_profiler" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "profiler"
   zone_name           = azurerm_private_dns_zone.monitor[0].name
   resource_group_name = var.resourceGroupName
@@ -127,7 +142,7 @@ resource "azurerm_private_dns_a_record" "monitor_profiler" {
 }
 
 resource "azurerm_private_dns_a_record" "monitor_live" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "live"
   zone_name           = azurerm_private_dns_zone.monitor[0].name
   resource_group_name = var.resourceGroupName
@@ -136,7 +151,7 @@ resource "azurerm_private_dns_a_record" "monitor_live" {
 }
 
 resource "azurerm_private_dns_a_record" "monitor_snapshot" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "snapshot"
   zone_name           = azurerm_private_dns_zone.monitor[0].name
   resource_group_name = var.resourceGroupName
@@ -145,7 +160,7 @@ resource "azurerm_private_dns_a_record" "monitor_snapshot" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "monitor-net" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                  = "infoasst-pl-monitor-net"
   resource_group_name   = var.resourceGroupName
   private_dns_zone_name = azurerm_private_dns_zone.monitor[0].name
@@ -153,13 +168,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "monitor-net" {
 }
 
 resource "azurerm_private_dns_zone" "oms" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = var.privateDnsZoneNameOms
   resource_group_name = var.resourceGroupName
 }
 
 resource "azurerm_private_dns_a_record" "oms_law_id" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "infoasst-pl-oms-law-id"
   zone_name           = azurerm_private_dns_zone.oms[0].name
   resource_group_name = var.resourceGroupName
@@ -168,7 +183,7 @@ resource "azurerm_private_dns_a_record" "oms_law_id" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "oms-net" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                  = "infoasst-pl-oms-net"
   resource_group_name   = var.resourceGroupName
   private_dns_zone_name = azurerm_private_dns_zone.oms[0].name
@@ -176,13 +191,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "oms-net" {
 }
 
 resource "azurerm_private_dns_zone" "ods" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = var.privateDnSZoneNameOds
   resource_group_name = var.resourceGroupName
 }
 
 resource "azurerm_private_dns_a_record" "ods_law_id" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "infoasst_pl_ods_law_id"
   zone_name           = azurerm_private_dns_zone.ods[0].name
   resource_group_name = var.resourceGroupName
@@ -191,7 +206,7 @@ resource "azurerm_private_dns_a_record" "ods_law_id" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "ods-net" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                  = "infoasst-pl-ods-net"
   resource_group_name   = var.resourceGroupName
   private_dns_zone_name = azurerm_private_dns_zone.ods[0].name
@@ -199,13 +214,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ods-net" {
 }
 
 resource "azurerm_private_dns_zone" "agentsvc" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = var.privateDnsZoneNameAutomation
   resource_group_name = var.resourceGroupName
 }
 
 resource "azurerm_private_dns_a_record" "agentsvc_law_id" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "infoasst_pl_agentsvc_law_id"
   zone_name           = azurerm_private_dns_zone.agentsvc[0].name
   resource_group_name = var.resourceGroupName
@@ -214,7 +229,7 @@ resource "azurerm_private_dns_a_record" "agentsvc_law_id" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "agentsvc-net" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                  = "infoasst-pl-agentsvc-net"
   resource_group_name   = var.resourceGroupName
   private_dns_zone_name = azurerm_private_dns_zone.agentsvc[0].name
@@ -222,7 +237,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "agentsvc-net" {
 }
 
 resource "azurerm_private_dns_a_record" "blob_scadvisorcontentpld" {
-  count               = var.is_secure_mode ? 1 : 0
+  count              = var.is_secure_mode && var.create_private_dns ? 1 : 0
   name                = "scadvisorcontentpl"
   zone_name           = var.privateDnsZoneNameBlob
   resource_group_name = var.resourceGroupName

@@ -45,6 +45,11 @@ variable "vnet_id" {
   type = string
 }
 
+variable "create_private_dns" {
+  type    = bool
+  default = true
+}
+
 variable "privateDnsZoneNameMonitor" {
   type = string
 }
@@ -82,6 +87,10 @@ variable "vnet_name" {
 }
 
 variable "subnet_name" {
+  type = string
+}
+
+variable "subnet_id" {
   type = string
 }
 

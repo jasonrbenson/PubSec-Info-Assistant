@@ -44,19 +44,19 @@ resource "azurerm_key_vault_access_policy" "infoasst" {
     ]
 }
 
-data "azurerm_subnet" "subnet" {
-  count                = var.is_secure_mode ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.vnet_name
-  resource_group_name  = var.resourceGroupName
-}
+# data "azurerm_subnet" "subnet" {
+#   count                = var.is_secure_mode ? 1 : 0
+#   name                 = var.subnet_name
+#   virtual_network_name = var.vnet_name
+#   resource_group_name  = var.resourceGroupName
+# }
 
 resource "azurerm_private_endpoint" "kv_private_endpoint" {
   count                         = var.is_secure_mode ? 1 : 0
   name                          = "${var.name}-private-endpoint"
   location                      = var.location
   resource_group_name           = var.resourceGroupName
-  subnet_id                     = data.azurerm_subnet.subnet[0].id
+  subnet_id                     = var.subnet_id
   custom_network_interface_name = "infoasstkvnic"
 
   private_service_connection {
@@ -66,8 +66,17 @@ resource "azurerm_private_endpoint" "kv_private_endpoint" {
     subresource_names              = ["vault"]
   }
 
-  private_dns_zone_group {
-    name                 = "kv-dns-zone-group"
-    private_dns_zone_ids = [data.azurerm_private_dns_zone.kv_dns_zone[0].id]
+  # private_dns_zone_group {
+  #   name                 = "kv-dns-zone-group"
+  #   private_dns_zone_ids = [data.azurerm_private_dns_zone.kv_dns_zone[0].id]
+  # }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.private_dns_zone_ids
+    content {
+      name                 = "kv-dns-zone-group"
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.kv_dns_zone[0].id]
+    }
+    
   }
 }

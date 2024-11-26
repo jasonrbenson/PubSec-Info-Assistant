@@ -72,15 +72,15 @@ resource "azurerm_role_assignment" "acr_pull_role" {
   scope                = var.container_registry_id
 }
 
-data "azurerm_key_vault" "existing" {
-  name                = var.keyVaultName
-  resource_group_name = var.resourceGroupName
-}
+# data "azurerm_key_vault" "existing" {
+#   name                = var.keyVaultName
+#   resource_group_name = var.resourceGroupName
+# }
 
-data "azurerm_storage_account" "existing_sa" {
-  name                = var.blobStorageAccountName
-  resource_group_name = var.resourceGroupName
-}
+# data "azurerm_storage_account" "existing_sa" {
+#   name                = var.blobStorageAccountName
+#   resource_group_name = var.resourceGroupName
+# }
 
 // Create function app resource
 resource "azurerm_linux_function_app" "function_app" {
@@ -89,7 +89,7 @@ resource "azurerm_linux_function_app" "function_app" {
   resource_group_name                 = var.resourceGroupName
   service_plan_id                     = azurerm_service_plan.funcServicePlan.id
   storage_account_name                = var.blobStorageAccountName
-  storage_account_access_key          = data.azurerm_storage_account.existing_sa.primary_access_key
+  storage_account_access_key          = var.storageAccountAccessKey
   #storage_uses_managed_identity       = true
   https_only                          = true
   tags                                = var.tags
@@ -229,7 +229,7 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostic_logs_usgov" {
 }
 
 resource "azurerm_key_vault_access_policy" "policy" {
-  key_vault_id = data.azurerm_key_vault.existing.id
+  key_vault_id = var.keyVaultId
 
   tenant_id = azurerm_linux_function_app.function_app.identity.0.tenant_id
   object_id = azurerm_linux_function_app.function_app.identity.0.principal_id
@@ -243,19 +243,19 @@ resource "azurerm_key_vault_access_policy" "policy" {
   ]
 }
 
-data "azurerm_subnet" "subnet" {
-  count                = var.is_secure_mode ? 1 : 0
-  name                 = var.subnet_name
-  virtual_network_name = var.vnet_name
-  resource_group_name  = var.resourceGroupName
-}
+# data "azurerm_subnet" "subnet" {
+#   count                = var.is_secure_mode ? 1 : 0
+#   name                 = var.subnet_name
+#   virtual_network_name = var.vnet_name
+#   resource_group_name  = var.resourceGroupName
+# }
 
 resource "azurerm_private_endpoint" "privateFunctionEndpoint" {
   count                         = var.is_secure_mode ? 1 : 0
   name                          = "${var.name}-private-endpoint"
   location                      = var.location
   resource_group_name           = var.resourceGroupName
-  subnet_id                     = data.azurerm_subnet.subnet[0].id
+  subnet_id                     = var.subnet_id
   tags                          = var.tags
   custom_network_interface_name = "infoasstfuncnic"
    
@@ -267,8 +267,16 @@ resource "azurerm_private_endpoint" "privateFunctionEndpoint" {
     is_manual_connection = false
   }
   
-  private_dns_zone_group {
-    name                 = "${var.name}PrivateDnsZoneGroup"
-    private_dns_zone_ids = var.private_dns_zone_ids
+  # private_dns_zone_group {
+  #   name                 = "${var.name}PrivateDnsZoneGroup"
+  #   private_dns_zone_ids = var.private_dns_zone_ids
+  # }
+  dynamic "private_dns_zone_group" {
+    for_each = var.create_private_dns ? [1] : []
+    content {
+      name                 = "${var.name}PrivateDnsZoneGroup"
+      private_dns_zone_ids = var.private_dns_zone_ids
+    }
+    
   }
 }

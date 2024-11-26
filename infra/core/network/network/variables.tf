@@ -10,6 +10,16 @@ variable "ddos_plan_id" {
   type = string
 }
 
+variable "useExistingVnet" {
+  type = bool
+  default = false
+}
+
+variable "usePrivateDNSResolver" {
+  type = bool
+  default = true
+}
+
 variable "vnet_name" {
   type    = string
 }
@@ -87,6 +97,58 @@ variable "snetACRCIDR" {
 }
 
 variable "snetDnsCIDR" {
+  type    = string
+}
+
+variable "snetAzureMonitorSubnetName" {
+  type    = string
+}
+
+variable "snetStorageAccountSubnetName" {
+  type    = string
+}
+
+variable "snetCosmosDbSubnetName" {
+  type    = string
+}
+
+variable "snetAzureAiSubnetName" {
+  type    = string
+}
+
+variable "snetKeyVaultSubnetName" {
+  type    = string
+}
+
+variable "snetAppSubnetName" {
+  type    = string
+}
+
+variable "snetEnrichmentSubnetName" {
+  type    = string
+}
+
+variable "snetIntegrationSubnetName" {
+  type    = string
+}
+
+variable "snetSearchServiceSubnetName" {
+  type    = string
+}
+
+variable "snetAzureOpenAISubnetName" {
+  type    = string
+}
+
+variable "snetFunctionSubnetName" {
+  type    = string
+}
+
+variable "snetACRSubnetName" {
+  type    = string
+}
+
+variable "snetDnsSubnetName" {
   type    = string
 }
 

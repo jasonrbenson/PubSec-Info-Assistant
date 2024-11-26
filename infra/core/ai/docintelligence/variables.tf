@@ -39,13 +39,14 @@ variable "is_secure_mode" {
   default = false
 }
 
-variable "subnet_id" {
-  type = string
-  default = ""
-}
 
 variable "private_dns_zone_ids" {
   type = set(string)
+}
+
+variable "create_private_dns" {
+  type    = bool
+  default = true
 }
 
 variable "vnet_name" {
@@ -53,6 +54,10 @@ variable "vnet_name" {
 }
 
 variable "subnet_name" {
+  type = string
+}
+
+variable "subnet_id" {
   type = string
 }
 

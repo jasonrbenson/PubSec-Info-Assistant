@@ -54,6 +54,11 @@ variable "private_dns_zone_ids" {
   type = set(string)
 }
 
+variable "create_private_dns" {
+  type    = bool
+  default = true
+}
+
 variable "vnet_name" {
   type = string
 }

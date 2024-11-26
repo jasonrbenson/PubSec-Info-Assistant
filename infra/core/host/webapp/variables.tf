@@ -62,6 +62,10 @@ variable "keyVaultName" {
   type = string
 }
 
+variable "keyVaultId" {
+  type = string
+}
+
 variable "aadClientId" {
   type = string
   default = ""
@@ -119,7 +123,7 @@ variable "allowedOrigins" {
 
 variable "runtimeVersion" {
   type    = string
-  default = "3.12"
+  default = "3.10"
 }
 
 variable "is_secure_mode" {
@@ -135,12 +139,21 @@ variable "subnet_name" {
   type = string
 }
 
+variable "subnet_id" {
+  type = string
+}
+
 variable "private_dns_zone_ids" {
   type = set(string)
 }
 
 variable "private_dns_zone_name" {
   type = string
+}
+
+variable "create_private_dns" {
+  type    = bool
+  default = true
 }
 
 variable "snetIntegration_id" {
@@ -173,4 +186,9 @@ variable "container_registry_admin_password" {
 
 variable "azure_environment" {
   type        = string
+}
+
+variable "public_network_access_enabled" {
+  type        = bool
+  default     = true
 }
