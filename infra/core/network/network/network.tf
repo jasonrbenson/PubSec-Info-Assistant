@@ -411,7 +411,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "private_dns_resolver" 
     count = var.usePrivateDNSResolver ? 1 : 0
     name                        = "dns-resolver-inbound-endpoint"
     location                    = var.location
-    private_dns_resolver_id     = azurerm_private_dns_resolver.private_dns_resolver.id
+    private_dns_resolver_id     = azurerm_private_dns_resolver.private_dns_resolver[0].id
 
     ip_configurations {
       subnet_id                 = var.useExistingVnet ? data.azurerm_subnet.dns[0].id : azurerm_subnet.dns[0].id   

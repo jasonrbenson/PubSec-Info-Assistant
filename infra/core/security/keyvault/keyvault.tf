@@ -72,7 +72,7 @@ resource "azurerm_private_endpoint" "kv_private_endpoint" {
   # }
 
   dynamic "private_dns_zone_group" {
-    for_each = var.private_dns_zone_ids
+    for_each = var.create_private_dns ? [1] : []
     content {
       name                 = "kv-dns-zone-group"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.kv_dns_zone[0].id]
