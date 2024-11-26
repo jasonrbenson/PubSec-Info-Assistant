@@ -542,8 +542,8 @@ module "openaiServices" {
       name            = var.chatGptDeploymentName != "" ? var.chatGptDeploymentName : (var.chatGptModelName != "" ? var.chatGptModelName : "gpt-35-turbo-16k")
       model           = {
         format        = "OpenAI"
-        name          = var.chatGptModelName != "" ? var.chatGptModelName : "gpt-35-turbo-16k"
-        version       = var.chatGptModelVersion != "" ? var.chatGptModelVersion : "0613"
+        name          = var.chatGptModelName != "" ? var.chatGptModelName : "gpt-4o"
+        version       = var.chatGptModelVersion != "" ? var.chatGptModelVersion : "0125"
       }
       sku             = {
         name          = var.chatGptModelSkuName
