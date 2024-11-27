@@ -539,11 +539,11 @@ module "openaiServices" {
 
   deployments = [
     {
-      name            = var.chatGptDeploymentName != "" ? var.chatGptDeploymentName : (var.chatGptModelName != "" ? var.chatGptModelName : "gpt-35-turbo-16k")
+      name            = var.chatGptDeploymentName != "" ? var.chatGptDeploymentName : (var.chatGptModelName != "" ? var.chatGptModelName : "gpt-4o")
       model           = {
         format        = "OpenAI"
         name          = var.chatGptModelName != "" ? var.chatGptModelName : "gpt-4o"
-        version       = var.chatGptModelVersion != "" ? var.chatGptModelVersion : "0125"
+        version       = var.chatGptModelVersion != "" ? var.chatGptModelVersion : "2024-05-13"
       }
       sku             = {
         name          = var.chatGptModelSkuName
