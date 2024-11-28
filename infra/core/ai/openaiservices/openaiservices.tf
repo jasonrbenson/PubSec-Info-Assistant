@@ -70,7 +70,7 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostic_logs" {
 resource "azurerm_private_endpoint" "openaiPrivateEndpoint" {
   count                         = var.useExistingAOAIService ? 0 : var.is_secure_mode ? 1 : 0
   name                          = "${var.name}-private-endpoint"
-  location                      = var.location
+  location                      = var.pe_location
   resource_group_name           = var.resourceGroupName
   subnet_id                     = var.subnet_id
   custom_network_interface_name = "infoasstaoainic"

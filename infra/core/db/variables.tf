@@ -7,6 +7,10 @@ variable "location" {
   default = "Your_Resource_Group_Location"
 }
 
+variable "pe_location" {
+  type = string
+}
+
 variable "tags" {
   type = map(string)
   default = {}

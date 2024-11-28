@@ -7,6 +7,10 @@ variable "location" {
   default = "" 
 }
 
+variable "pe_location" {
+  type    = string 
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

@@ -78,7 +78,7 @@ resource "azurerm_cosmosdb_sql_container" "log_container" {
 resource "azurerm_private_endpoint" "cosmosPrivateEndpoint" {
   count                         = var.is_secure_mode ? 1 : 0
   name                          = "${var.name}-private-endpoint"
-  location                      = var.location
+  location                      = var.pe_location
   resource_group_name           = var.resourceGroupName
   subnet_id                     = var.subnet_id
   custom_network_interface_name = "infoasstcosmosnic"

@@ -524,6 +524,7 @@ module "openaiServices" {
   source                          = "./core/ai/openaiservices"
   name                            = var.openAIServiceName != "" ? var.openAIServiceName : "infoasst-aoai-${random_string.random.result}"
   location                        = var.openaiLocation
+  pe_location = module.network[0].location
   tags                            = local.tags
   resourceGroupName               = azurerm_resource_group.rg.name
   useExistingAOAIService          = var.useExistingAOAIService
@@ -606,6 +607,7 @@ module "searchServices" {
   source                        = "./core/search"
   name                          = var.searchServicesName != "" ? var.searchServicesName : "infoasst-search-${random_string.random.result}"
   location                      = var.aiSearchLocation
+  pe_location = module.network[0].location
   tags                          = local.tags
   semanticSearch                = var.use_semantic_reranker ? "free" : null
   resourceGroupName             = azurerm_resource_group.rg.name
@@ -624,6 +626,7 @@ module "cosmosdb" {
   source = "./core/db"
   name                          = "infoasst-cosmos-${random_string.random.result}"
   location                      = var.cosmosdbLocation
+  pe_location = module.network[0].location
   tags                          = local.tags
   logDatabaseName               = "statusdb"
   logContainerName              = "statuscontainer"
